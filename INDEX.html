@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnVision: Tech & Terra | LIVE EVENT DASHBOARD</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Palette */
+            --bg-dark: #0f172a;
+            --card-glass: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --text-light: #64748b;
+            
+            /* Gradients */
+            --grad-tech: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); /* Blue to Purple */
+            --grad-terra: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); /* Green to Cyan */
+            --grad-main: linear-gradient(to right, #3b82f6, #06b6d4);
+            --grad-glow: linear-gradient(45deg, #ff357a, #fff172);
+        }
+
+        /* --- GLOBAL SETUP --- */
+        html { scroll-behavior: smooth; }
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif; /* Modern Tech Font */
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Scroll Progress Bar */
+        #progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: transparent;
+            z-index: 99999;
+        }
+        #progress-bar {
+            height: 4px;
+            background: var(--grad-main);
+            width: 0%;
+            border-radius: 0 2px 2px 0;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.7);
+            transition: width 0.1s ease;
+        }
+
+        /* --- TRANSITION OVERLAY --- */
+        #transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0b1120;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        #transition-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .cyber-loader {
+            width: 80px;
+            height: 80px;
+            border: 4px solid transparent;
+            border-top: 4px solid #06b6d4;
+            border-right: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        .cyber-text {
+            margin-top: 20px;
+            color: #06b6d4;
+            font-family: monospace;
+            letter-spacing: 3px;
+            animation: blink 1s infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* --- HEADER & TICKER --- */
+        header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        /* News Ticker */
+        .ticker-wrap {
+            width: 100%;
+            background: #1e293b;
+            color: #fff;
+            font-size: 0.85rem;
+            overflow: hidden;
+            height: 35px;
+            display: flex;
+            align-items: center;
+        }
+        .ticker {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker 30s linear infinite;
+            padding-left: 100%;
+        }
+        .ticker-item { display: inline-block; padding: 0 2rem; }
+        .ticker-item strong { color: #38bdf8; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 90%;
+            max-width: 1200px;
+            margin: auto;
+            padding: 12px 0;
+        }
+        .logo h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: var(--grad-tech);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .badge {
+            background: #ef4444;
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 12px;
+            vertical-align: middle;
+            margin-left: 8px;
+            animation: pulse-red 1.5s infinite;
+        }
+        nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            padding: 8px 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        nav a:hover { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+
+        /* --- HERO --- */
+        .hero {
+            position: relative;
+            height: 70vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+            background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.7)), url('https://www.veolia.com/sites/g/files/dvc4206/files/styles/1920x1080/public/image/2022/09/Collaborative%20Working%20%281%29.jpg?itok=FB42ptv0');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            overflow: hidden;
+        }
+        /* Animated gradient overlay on hero */
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(120deg, rgba(59, 130, 246, 0.3), rgba(16, 185, 129, 0.3));
+            mix-blend-mode: overlay;
+        }
+        
+        .hero-content { position: relative; z-index: 2; }
+        .hero h2 {
+            font-size: 4rem;
+            margin: 0;
+            font-weight: 800;
+            line-height: 1.1;
+            background: linear-gradient(to right, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .hero p {
+            font-size: 1.5rem;
+            margin-top: 15px;
+            font-weight: 300;
+            color: #e2e8f0;
+        }
+        .tagline-pill {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            display: inline-block;
+            backdrop-filter: blur(5px);
+        }
+
+        /* --- CARDS & SECTIONS --- */
+        .section { padding: 80px 20px; position: relative; }
+        .container { width: 90%; max-width: 1100px; margin: auto; }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            font-weight: 800;
+            background: var(--grad-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background: var(--card-glass);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        /* Gradient Border Effect */
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--grad-tech);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.25);
+        }
+
+        /* --- GAME ENTRY (The Highlight) --- */
+        .game-hub-card {
+            background: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 60px 40px;
+            border-radius: 24px;
+            position: relative;
+            margin-top: 60px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.5);
+            overflow: hidden;
+        }
+        .game-hub-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(transparent, rgba(6, 182, 212, 0.3), transparent 30%);
+            animation: rotate 4s linear infinite;
+        }
+        .game-hub-inner { position: relative; z-index: 2; background: #1e293b; padding: 30px; border-radius: 16px; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: inline-block;
+            padding: 16px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Primary Button (Gradient) */
+        .btn-primary {
+            background: var(--grad-main);
+            color: white;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.5);
+        }
+        /* White Button */
+        .btn-white {
+            background: white;
+            color: #2563eb;
+        }
+        .btn-white:hover { background: #f1f5f9; transform: translateY(-2px); }
+        
+        /* Outline Button */
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #cbd5e1;
+            color: var(--text-light);
+        }
+        .btn-outline:hover { border-color: #3b82f6; color: #3b82f6; }
+
+        /* --- COUNTDOWN & TIMELINE --- */
+        #countdown {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .cd-box {
+            background: #f1f5f9;
+            padding: 15px 25px;
+            border-radius: 12px;
+            min-width: 100px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .cd-number { font-size: 2.5rem; font-weight: 800; display: block; color: #0f172a; line-height: 1; }
+        .cd-label { font-size: 0.8rem; text-transform: uppercase; color: #64748b; letter-spacing: 1px; }
+
+        .timeline { position: relative; max-width: 800px; margin: 50px auto; }
+        .timeline-line { position: absolute; left: 50%; width: 2px; height: 100%; background: #e2e8f0; transform: translateX(-50%); }
+        .timeline-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; position: relative; }
+        .timeline-content { width: 45%; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; transition: 0.3s; }
+        .timeline-content:hover { transform: scale(1.02); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .timeline-dot { width: 20px; height: 20px; background: var(--grad-main); border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); border: 4px solid white; box-shadow: 0 0 0 2px #e2e8f0; z-index: 2; }
+        .timeline-item.right .timeline-content { margin-left: auto; border-left: 4px solid #06b6d4; }
+        .timeline-item.left .timeline-content { margin-right: auto; text-align: right; border-right: 4px solid #3b82f6; }
+
+        /* --- FLOATING ACTION BUTTON (FAB) --- */
+        .fab-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 900;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+        .fab-container.visible { opacity: 1; transform: translateY(0); pointer-events: all; }
+        .fab-btn {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: var(--grad-terra);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+            color: white; text-decoration: none; font-size: 1.5rem;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce { 0%, 100% {transform: translateY(0);} 50% {transform: translateY(-5px);} }
+
+        /* --- MODALS --- */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
+        .modal-content { background: white; margin: 5% auto; padding: 40px; width: 90%; max-width: 800px; border-radius: 20px; position: relative; animation: slideUp 0.4s ease; }
+        .modal-content-large { height: 80vh; max-width: 1100px; }
+        .modal-content-large iframe { width: 100%; height: 100%; border: none; border-radius: 10px; }
+        .close-btn { position: absolute; top: 20px; right: 20px; font-size: 2rem; cursor: pointer; color: #94a3b8; }
+        @keyframes slideUp { from {transform: translateY(50px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+        
+        /* --- FOOTER --- */
+        footer { background: #0f172a; color: #94a3b8; padding: 40px; text-align: center; font-size: 0.9rem; }
+        
+        /* Canvas for Confetti */
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; }
+
+        /* Animations */
+        .animated { opacity: 0; transform: translateY(30px); transition: 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+        .visible { opacity: 1; transform: translateY(0); }
+        @keyframes pulse-red { 0% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);} 70% {box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);} 100% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);} }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h2 { font-size: 3rem; }
+            .timeline-line { left: 20px; }
+            .timeline-item { flex-direction: column; align-items: flex-start; padding-left: 50px; }
+            .timeline-content { width: 100%; text-align: left !important; margin: 0 !important; }
+            .timeline-dot { left: 20px; }
+            .timeline-content { border: none; border-left: 4px solid #3b82f6; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Scroll Progress Bar -->
+    <div id="progress-container"><div id="progress-bar"></div></div>
+
+    <!-- Transition Overlay -->
+    <div id="transition-overlay">
+        <div class="cyber-loader"></div>
+        <div class="cyber-text">INITIALIZING ENVIRONMENT...</div>
+    </div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Header -->
+    <header>
+        <!-- News Ticker -->
+        <div class="ticker-wrap">
+            <div class="ticker">
+                <div class="ticker-item">📢 <strong>EVENT UPDATE:</strong> "Tech & Terra" is LIVE!</div>
+                <div class="ticker-item">🚀 <strong>STAGE 1:</strong> Pictionary starts at 3:00 PM.</div>
+                <div class="ticker-item">💡 <strong>REMINDER:</strong> Submit your carbon data before 4:30 PM.</div>
+                <div class="ticker-item">📢 <strong>EVENT UPDATE:</strong> "Tech & Terra" is LIVE!</div>
+            </div>
+        </div>
+
+        <div class="header-container">
+            <div class="logo">
+                <h1>EnVision <span class="badge">LIVE</span></h1>
+            </div>
+            <nav>
+                <a href="#about">About</a>
+                <a href="#event">Event Hub</a>
+                <a href="#future">Future</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <div class="tagline-pill animated">Veolia NextGEN Initiative</div>
+                <h2 class="animated">Tech & Terra</h2>
+                <p class="animated" style="transition-delay: 0.2s;">Innovation meets Sustainability.</p>
+                <div style="margin-top: 30px;" class="animated">
+                    <a href="#event" class="btn btn-primary" style="background: white; color: #0f172a;">Go to Dashboard ↓</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <div id="about" class="section">
+            <div class="container">
+                <h2 class="section-title animated">About EnVision</h2>
+                <div class="card animated">
+                    <p style="font-size: 1.2rem; text-align: center; color: #475569; line-height: 1.8;">
+                        EnVision is the bridge between departmental silos and integrated solutions. We foster fresh ideas and develop the next generation of leaders through knowledge sharing and collaborative problem-solving.
+                    </p>
+                    <div style="display: flex; flex-wrap: wrap; justify-content: space-around; margin-top: 40px; gap: 20px;">
+                        <div style="text-align: center;">
+                            <h3 style="color: #3b82f6; font-size: 1.5rem;">🛠️ Innovation</h3>
+                            <p style="font-size: 0.9rem;">Seeking novel technologies</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <h3 style="color: #10b981; font-size: 1.5rem;">🌿 Sustainability</h3>
+                            <p style="font-size: 0.9rem;">Environmental design</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <h3 style="color: #8b5cf6; font-size: 1.5rem;">🤝 Collaboration</h3>
+                            <p style="font-size: 0.9rem;">Breaking barriers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Section -->
+        <div id="event" class="section">
+            <div class="container">
+                <h2 class="section-title animated">Event Dashboard</h2>
+                
+                <!-- Countdown -->
+                <div class="animated" style="text-align: center;">
+                    <p style="color:#64748b; margin-bottom: 10px;">TIME UNTIL LIFTOFF</p>
+                    <div id="countdown"></div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="timeline">
+                    <div class="timeline-line"></div>
+                    
+                    <!-- Item 1 -->
+                    <div class="timeline-item left animated">
+                        <div class="timeline-content">
+                            <h3 style="color: #3b82f6;">ROUND 1: Tech Pictionary</h3>
+                            <p>Race against the clock! Sketch technical concepts without words.</p>
+                            <a href="https://script.google.com/a/macros/veolia.com/s/AKfycbwWvO5jEDpXcL6RWahvilJjaAkWj-DxAp7VJjElGV4LHJ475Wt9rqS4PZkkv5QYMOPgEQ/exec" class="btn btn-outline launch-trigger" style="padding: 8px 20px; font-size: 0.9rem;" target="_blank">Start Round 1</a>
+                        </div>
+                        <div class="timeline-dot"></div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="timeline-item right animated">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <h3 style="color: #06b6d4;">ROUND 2: Carbon Cutdown</h3>
+                            <p>Calculate emissions and demonstrate sustainable practices.</p>
+                            <a href="https://script.google.com/a/macros/veolia.com/s/AKfycbz-Hc7cdwJXSiCJtZhpCtXEL60s-idwXjRUN0pDgSc_s1-yE-UM1l4FVxGxmqmbtdyo/exec?pli=1" class="btn btn-outline launch-trigger" style="padding: 8px 20px; font-size: 0.9rem;" target="_blank">Start Round 2</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="animated" style="text-align: center; margin-top: 40px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button id="ruleBookBtn" class="btn btn-white" style="box-shadow: 0 5px 15px rgba(0,0,0,0.1);">📖 Rule Book</button>
+                    <button id="participantsBtn" class="btn btn-white" style="box-shadow: 0 5px 15px rgba(0,0,0,0.1);">👥 Participants</button>
+                    <a href="https://drive.google.com/file/d/1Gln1bVbnExfFb8RL414aqjB4gARquWXX/view?usp=drive_link" class="btn btn-white" style="box-shadow: 0 5px 15px rgba(0,0,0,0.1);" target="_blank">📄 Poster</a>
+                </div>
+
+                <!-- MAIN GAME ENTRY -->
+                <div class="game-hub-card animated">
+                    <div class="game-hub-inner">
+                        <h3 style="font-size: 2.5rem; margin-bottom: 10px;">Enter the Arena</h3>
+                        <p style="color: #cbd5e1; margin-bottom: 30px;">The systems are online. Click below to initialize the main event hub.</p>
+                        <a href="https://script.google.com/a/macros/veolia.com/s/AKfycbzIMQWFHoJj3H7P4aORjkS6R5lmhFvAHBQjAQ2PJHSjIikOB17BP2tPFZ6-WFgfeiLv/exec" class="btn btn-primary launch-trigger" id="main-launch-btn" target="_blank">
+                            🚀 LAUNCH EVENT HUB
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Future Section -->
+        <div id="future" class="section">
+            <div class="container">
+                <h2 class="section-title animated">The Way Forward</h2>
+                <div class="card animated" style="text-align:center; border-left: 5px solid #8b5cf6;">
+                    <h3 style="color: #8b5cf6; font-size: 1.8rem;">Upcoming: Water Champions Challenge</h3>
+                    <p style="font-size: 1.1rem; color: #64748b;">"Tech & Terra" is just the start. Prepare for our water management challenge.</p>
+                    <div style="margin-top: 20px;">
+                         <a href="https://script.google.com/a/macros/veolia.com/s/AKfycbxA20SKGpe1oO7_QCxarW1C7oKMENTe1iULp0e-f8Y7XS0PF2YpOLXX3qcgZ9-sd_Ei/exec" class="btn btn-outline" target="_blank">Read Proposal</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FAB (Floating Action Button) -->
+    <div class="fab-container" id="fab">
+        <a href="https://script.google.com/a/macros/veolia.com/s/AKfycbzIMQWFHoJj3H7P4aORjkS6R5lmhFvAHBQjAQ2PJHSjIikOB17BP2tPFZ6-WFgfeiLv/exec" class="fab-btn launch-trigger" target="_blank" title="Quick Launch">🎮</a>
+    </div>
+
+    <!-- Modals -->
+    <div id="ruleBookModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeRuleBook">&times;</span>
+            <h2 style="color: #3b82f6;">Official Rule Book</h2>
+            <div style="margin-top: 20px; line-height: 1.8;">
+                <h4 style="color: #0f172a;">Stage 1: Pictionary</h4>
+                <ul>
+                    <li>3 Members: Artist, Guesser 1, Guesser 2.</li>
+                    <li>90 Seconds per round.</li>
+                    <li>No letters/numbers allowed in drawings.</li>
+                </ul>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                <h4 style="color: #0f172a;">Stage 2: Carbon Cutdown</h4>
+                <ul>
+                    <li>Calculate footprint accurately.</li>
+                    <li>Lowest verified footprint wins.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="participantsModal" class="modal">
+        <div class="modal-content modal-content-large">
+            <span class="close-btn" id="closeParticipants">&times;</span>
+            <h2>Registered Teams</h2>
+            <iframe src="https://docs.google.com/spreadsheets/d/11q5b9ciXiEGI1KWz5008wbtQAexFiKDZeKfL3wPzZ6E/edit?usp=sharing&rm=minimal&amp;chrome=false"></iframe>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 EnVision: Engineers with a Vision. <br> <span style="opacity:0.7">Powered by Veolia NextGEN</span></p>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // 1. Scroll Progress Bar & FAB Visibility
+        const progressBar = document.getElementById('progress-bar');
+        const fab = document.getElementById('fab');
+        
+        window.onscroll = function() {
+            // Progress Bar
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            progressBar.style.width = scrolled + "%";
+
+            // FAB Visibility
+            if (winScroll > 500) {
+                fab.classList.add('visible');
+            } else {
+                fab.classList.remove('visible');
+            }
+        };
+
+        // 2. Scroll Animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animated').forEach(el => observer.observe(el));
+
+        // 3. Transition & Confetti Logic
+        const overlay = document.getElementById('transition-overlay');
+        const overlayText = overlay.querySelector('.cyber-text');
+        
+        const launchActions = (e, url) => {
+            e.preventDefault();
+            
+            // Trigger Confetti
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#3b82f6', '#06b6d4', '#8b5cf6']
+            });
+
+            // Start Overlay Sequence
+            setTimeout(() => {
+                overlay.classList.add('active');
+                // Text sequence
+                setTimeout(() => { overlayText.innerText = "ESTABLISHING UPLINK..."; }, 1000);
+                setTimeout(() => { overlayText.innerText = "VERIFYING ID..."; }, 2000);
+                setTimeout(() => { overlayText.innerText = "ACCESS GRANTED."; }, 2800);
+
+                // Redirect
+                setTimeout(() => {
+                    window.open(url, '_blank');
+                    // Reset
+                    setTimeout(() => {
+                        overlay.classList.remove('active');
+                        overlayText.innerText = "INITIALIZING ENVIRONMENT...";
+                    }, 1000);
+                }, 3200);
+            }, 500); // Short delay to see confetti
+        };
+
+        document.querySelectorAll('.launch-trigger').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                launchActions(e, this.href);
+            });
+        });
+
+        // 4. Modals
+        function setupModal(btnId, modalId, closeId) {
+            const btn = document.getElementById(btnId);
+            const modal = document.getElementById(modalId);
+            const close = document.getElementById(closeId);
+            if(btn && modal && close) {
+                btn.onclick = () => modal.style.display = "block";
+                close.onclick = () => modal.style.display = "none";
+            }
+        }
+        setupModal('ruleBookBtn', 'ruleBookModal', 'closeRuleBook');
+        setupModal('participantsBtn', 'participantsModal', 'closeParticipants');
+        window.onclick = (e) => { if (e.target.classList.contains('modal')) e.target.style.display = "none"; }
+
+        // 5. Countdown (Nov 19, 2025 15:00)
+        const eventDate = new Date("Nov 19, 2025 15:00:00").getTime();
+        const countdownElement = document.getElementById('countdown');
+
+        if (countdownElement) {
+            const timer = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = eventDate - now;
+
+                if (distance < 0) {
+                    clearInterval(timer);
+                    countdownElement.innerHTML = "<div style='color:#10b981; font-weight:800; font-size:1.8rem; animation: blink 2s infinite;'>EVENT STARTED</div>";
+                    return;
+                }
+
+                const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+                countdownElement.innerHTML = `
+                    <div class="cd-box"><span class="cd-number">${h < 10 ? '0'+h : h}</span><span class="cd-label">Hrs</span></div>
+                    <div class="cd-box"><span class="cd-number">${m < 10 ? '0'+m : m}</span><span class="cd-label">Min</span></div>
+                    <div class="cd-box"><span class="cd-number">${s < 10 ? '0'+s : s}</span><span class="cd-label">Sec</span></div>
+                `;
+            }, 1000);
+        }
+    });
+    </script>
+</body>
+</html>
